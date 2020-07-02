@@ -17,7 +17,7 @@ from abc import abstractmethod
 
 class WorkerBase(object):
     def __init__(self, worker_id, publish_func, filesystem=None,
-                 dataset_path_or_paths=None,
+                 dataset_path=None,
                  schema=None,
                  ngram=None,
                  split_pieces=None,
@@ -35,7 +35,7 @@ class WorkerBase(object):
         self.publish_func = publish_func
 
         self._filesystem = filesystem
-        self._dataset_path = dataset_path_or_paths
+        self._dataset_path = dataset_path
         self._schema = schema
         self._ngram = ngram
         self._split_pieces = split_pieces

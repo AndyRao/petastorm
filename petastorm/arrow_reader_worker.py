@@ -89,7 +89,7 @@ class ArrowReaderWorkerResultsQueueReader(object):
 
 class ArrowReaderWorker(WorkerBase):
     def __init__(self, worker_id, publish_func, filesystem=None,
-                 dataset_path_or_paths=None,
+                 dataset_path=None,
                  schema=None,
                  ngram=None,
                  split_pieces=None,
@@ -100,7 +100,7 @@ class ArrowReaderWorker(WorkerBase):
 
         super(ArrowReaderWorker, self).__init__(worker_id, publish_func,
                                                 filesystem=filesystem,
-                                                dataset_path_or_paths=dataset_path_or_paths,
+                                                dataset_path=dataset_path,
                                                 schema=schema,
                                                 ngram=ngram,
                                                 split_pieces=split_pieces,
