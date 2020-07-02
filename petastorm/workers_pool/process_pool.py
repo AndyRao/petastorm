@@ -332,7 +332,7 @@ def _monitor_thread_function(main_process_pid):
 
 
 def _worker_bootstrap(worker_class, worker_id, control_socket, worker_receiver_socket, results_sender_socket,
-                      main_process_pid, serializer, worker_args):
+                      main_process_pid, serializer, worker_kwargs):
     """This is the root of the spawned worker processes.
 
     :param worker_class: A class with worker implementation.
@@ -341,7 +341,7 @@ def _worker_bootstrap(worker_class, worker_id, control_socket, worker_receiver_s
     :param worker_receiver_socket: A zmq socket used to deliver tasks to the worker
     :param results_sender_socket: A zmq socket used to deliver the work products to the consumer
     :param serializer: A serializer object (with serialize/deserialize methods) or None.
-    :param worker_args: Application specific parameter passed to worker constructor
+    :param worker_kwargs: Application specific parameter passed to worker constructor
     :return: ``None``
     """
     logger.debug('Starting _worker_bootstrap')
@@ -378,7 +378,7 @@ def _worker_bootstrap(worker_class, worker_id, control_socket, worker_receiver_s
     logger.debug('Instantiating a worker')
     # Instantiate a worker
     worker = worker_class(worker_id, lambda data: _serialize_result_and_send(results_sender, serializer, data),
-                          worker_args)
+                          **worker_kwargs)
 
     logger.debug('Starting monitor loop')
     thread = Thread(target=_monitor_thread_function, args=(main_process_pid,))

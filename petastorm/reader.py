@@ -422,9 +422,9 @@ class Reader(object):
                                                   self._workers_pool.workers_count + _VENTILATE_EXTRA_ROWGROUPS)
 
         # 5. Start workers pool
-        worker_args = dict(
+        worker_kwargs = dict(
             filesystem=pyarrow_filesystem,
-            dataset_path_or_paths=dataset_path,
+            dataset_path=dataset_path,
             schema=storage_schema,
             ngram=self.ngram,
             split_pieces=row_groups,
@@ -434,10 +434,7 @@ class Reader(object):
             pyarrow_filters=pyarrow_filters
         )
 
-        self._workers_pool.start(worker_class, (pyarrow_filesystem, dataset_path, storage_schema,
-                                                self.ngram, row_groups, cache, transform_spec,
-                                                self.schema, pyarrow_filters),
-                                 ventilator=self.ventilator)
+        self._workers_pool.start(worker_class, worker_kwargs, ventilator=self.ventilator)
         logger.debug('Workers pool started')
 
         self.last_row_consumed = False

@@ -101,7 +101,7 @@ class ThreadPool(object):
         self._ventilated_items_processed = 0
         self._ventilator = None
 
-    def start(self, worker_class, worker_args=None, ventilator=None):
+    def start(self, worker_class, worker_kwargs=None, ventilator=None):
         """Starts worker threads.
 
         :param worker_class: A class of the worker class. The class will be instantiated in the worker process. The
@@ -120,7 +120,7 @@ class ThreadPool(object):
         self._results_queue = queue.Queue(self._results_queue_size)
         self._workers = []
         for worker_id in range(self.workers_count):
-            worker_impl = worker_class(worker_id, self._stop_aware_put, worker_args)
+            worker_impl = worker_class(worker_id, self._stop_aware_put, **worker_kwargs)
             new_thread = WorkerThread(worker_impl, self._stop_event, self._ventilator_queue,
                                       self._results_queue, self._profiling_enabled)
             # Make the thread daemonic. Since it only reads it's ok to abort while running - no resource corruption
