@@ -88,18 +88,26 @@ class ArrowReaderWorkerResultsQueueReader(object):
 
 
 class ArrowReaderWorker(WorkerBase):
-    def __init__(self, worker_id, publish_func, args):
-        super(ArrowReaderWorker, self).__init__(worker_id, publish_func, args)
+    def __init__(self, worker_id, publish_func, filesystem=None,
+                 dataset_path_or_paths=None,
+                 schema=None,
+                 ngram=None,
+                 split_pieces=None,
+                 local_cache=None,
+                 transform_spec=None,
+                 transformed_schema=None,
+                 pyarrow_filters=None):
 
-        self._filesystem = args[0]
-        self._dataset_path_or_paths = args[1]
-        self._schema = args[2]
-        self._ngram = args[3]
-        self._split_pieces = args[4]
-        self._local_cache = args[5]
-        self._transform_spec = args[6]
-        self._transformed_schema = args[7]
-        self._pyarrow_filters = args[8]
+        super(ArrowReaderWorker, self).__init__(worker_id, publish_func,
+                                                filesystem=filesystem,
+                                                dataset_path_or_paths=dataset_path_or_paths,
+                                                schema=schema,
+                                                ngram=ngram,
+                                                split_pieces=split_pieces,
+                                                local_cache=local_cache,
+                                                transform_spec=transform_spec,
+                                                transformed_schema=transformed_schema,
+                                                pyarrow_filters=pyarrow_filters)
 
         if self._ngram:
             raise NotImplementedError('ngrams are not supported by ArrowReaderWorker')
@@ -128,9 +136,10 @@ class ArrowReaderWorker(WorkerBase):
 
         if not self._dataset:
             self._dataset = pq.ParquetDataset(
-                self._dataset_path_or_paths,
+                self._dataset_path,
                 filesystem=self._filesystem,
-                validate_schema=False)
+                validate_schema=False,
+                filters=self._pyarrow_filters)
 
         if self._dataset.partitions is None:
             # When read from parquet file list, the `dataset.partitions` will be None.
@@ -157,10 +166,10 @@ class ArrowReaderWorker(WorkerBase):
             #  2. Dataset path is hashed, to make sure we don't create too long keys, which maybe incompatible with
             #     some cache implementations
             #  3. Still leave relative path and the piece_index in plain text to make it easier to debug
-            if isinstance(self._dataset_path_or_paths, list):
-                path_str = ','.join(self._dataset_path_or_paths)
+            if isinstance(self._dataset_path, list):
+                path_str = ','.join(self._dataset_path)
             else:
-                path_str = self._dataset_path_or_paths
+                path_str = self._dataset_path
             cache_key = '{}:{}:{}'.format(hashlib.md5(path_str.encode('utf-8')).hexdigest(),
                                           piece.path, piece_index)
             all_cols = self._local_cache.get(cache_key,

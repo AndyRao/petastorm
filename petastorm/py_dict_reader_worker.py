@@ -98,19 +98,29 @@ class PyDictReaderWorkerResultsQueueReader(object):
 
 
 class PyDictReaderWorker(WorkerBase):
-    def __init__(self, worker_id, publish_func, args):
-        super(PyDictReaderWorker, self).__init__(worker_id, publish_func, args)
+    def __init__(self, worker_id, publish_func, filesystem=None,
+                 dataset_path_or_paths=None,
+                 schema=None,
+                 ngram=None,
+                 split_pieces=None,
+                 local_cache=None,
+                 transform_spec=None,
+                 transformed_schema=None,
+                 pyarrow_filters=None):
 
-        self._filesystem = args[0]
-        self._dataset_path = args[1]
-        self._schema = args[2]
-        self._ngram = args[3]
-        self._split_pieces = args[4]
-        self._local_cache = args[5]
-        self._transform_spec = args[6]
+        super(PyDictReaderWorker, self).__init__(worker_id, publish_func,
+                                                 filesystem=filesystem,
+                                                 dataset_path_or_paths=dataset_path_or_paths,
+                                                 schema=schema,
+                                                 ngram=ngram,
+                                                 split_pieces=split_pieces,
+                                                 local_cache=local_cache,
+                                                 transform_spec=transform_spec,
+                                                 transformed_schema=transformed_schema,
+                                                 pyarrow_filters=pyarrow_filters)
 
-        # We create datasets lazily in the first invocation of 'def process'. This speeds up startup time since
-        # all Worker constructors are serialized
+        # We create datasets lazily in the first invocation of 'def process'. This speeds up
+        # startup time since all Worker constructors are serialized
         self._dataset = None
 
     @staticmethod
@@ -135,7 +145,8 @@ class PyDictReaderWorker(WorkerBase):
             self._dataset = pq.ParquetDataset(
                 self._dataset_path,
                 filesystem=self._filesystem,
-                validate_schema=False)
+                validate_schema=False,
+                filters=self._pyarrow_filters)
 
         piece = self._split_pieces[piece_index]
 

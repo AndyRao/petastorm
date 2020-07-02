@@ -118,6 +118,9 @@ def make_reader(dataset_url,
     :param transform_spec: An instance of :class:`~petastorm.transform.TransformSpec` object defining how a record
         is transformed after it is loaded and decoded. The transformation occurs on a worker thread/process (depends
         on the ``reader_pool_type`` value).
+    :param pyarrow_filters: (List[Tuple] or List[List[Tuple]]): Standard PyArrow filters.
+        These will be applied when loading the parquet file with PyArrow. More information
+        here: https://arrow.apache.org/docs/python/generated/pyarrow.parquet.ParquetDataset.html
     :return: A :class:`Reader` object
     """
     dataset_url = normalize_dir_url(dataset_url)
@@ -340,9 +343,11 @@ class Reader(object):
             to the main data store is either slow or expensive and the local machine has large enough storage
             to store entire dataset (or a partition of a dataset if shards are used).
             By default, use the :class:`.NullCache` implementation.
-
         :param worker_class: This is the class that will be instantiated on a different thread/process. It's
             responsibility is to load and filter the data.
+        :param pyarrow_filters: (List[Tuple] or List[List[Tuple]]): Standard PyArrow filters.
+            These will be applied when loading the parquet file with PyArrow. More information
+            here: https://arrow.apache.org/docs/python/generated/pyarrow.parquet.ParquetDataset.html
         """
 
         # 1. Open the parquet storage (dataset)
@@ -417,9 +422,21 @@ class Reader(object):
                                                   self._workers_pool.workers_count + _VENTILATE_EXTRA_ROWGROUPS)
 
         # 5. Start workers pool
+        worker_args = dict(
+            filesystem=pyarrow_filesystem,
+            dataset_path_or_paths=dataset_path,
+            schema=storage_schema,
+            ngram=self.ngram,
+            split_pieces=row_groups,
+            local_cache=cache,
+            transform_spec=transform_spec,
+            transformed_schema=self.schema,
+            pyarrow_filters=pyarrow_filters
+        )
+
         self._workers_pool.start(worker_class, (pyarrow_filesystem, dataset_path, storage_schema,
                                                 self.ngram, row_groups, cache, transform_spec,
-                                                self.schema, pyarrow_filter),
+                                                self.schema, pyarrow_filters),
                                  ventilator=self.ventilator)
         logger.debug('Workers pool started')
 
