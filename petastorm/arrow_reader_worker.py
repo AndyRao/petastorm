@@ -99,6 +99,7 @@ class ArrowReaderWorker(WorkerBase):
         self._local_cache = args[5]
         self._transform_spec = args[6]
         self._transformed_schema = args[7]
+        self._pyarrow_filters = args[8]
 
         if self._ngram:
             raise NotImplementedError('ngrams are not supported by ArrowReaderWorker')

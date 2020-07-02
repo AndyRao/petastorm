@@ -67,7 +67,8 @@ def make_reader(dataset_url,
                 cache_type='null', cache_location=None, cache_size_limit=None,
                 cache_row_size_estimate=None, cache_extra_settings=None,
                 hdfs_driver='libhdfs3',
-                transform_spec=None):
+                transform_spec=None,
+                pyarrow_filters=None):
     """
     Creates an instance of Reader for reading Petastorm datasets. A Petastorm dataset is a dataset generated using
     :func:`~petastorm.etl.dataset_metadata.materialize_dataset` context manager as explained
@@ -161,6 +162,7 @@ def make_reader(dataset_url,
         'shard_count': shard_count,
         'cache': cache,
         'transform_spec': transform_spec,
+        'pyarrow_filters': pyarrow_filters
     }
 
     try:
@@ -187,7 +189,8 @@ def make_batch_reader(dataset_url_or_urls,
                       cache_type='null', cache_location=None, cache_size_limit=None,
                       cache_row_size_estimate=None, cache_extra_settings=None,
                       hdfs_driver='libhdfs3',
-                      transform_spec=None):
+                      transform_spec=None,
+                      pyarrow_filters=None):
     """
     Creates an instance of Reader for reading batches out of a non-Petastorm Parquet store.
 
@@ -287,7 +290,8 @@ def make_batch_reader(dataset_url_or_urls,
                   shard_count=shard_count,
                   cache=cache,
                   transform_spec=transform_spec,
-                  is_batched_reader=True)
+                  is_batched_reader=True,
+                  pyarrow_filters=pyarrow_filters)
 
 
 class Reader(object):
@@ -300,7 +304,7 @@ class Reader(object):
                  shuffle_row_groups=True, shuffle_row_drop_partitions=1,
                  predicate=None, rowgroup_selector=None, reader_pool=None, num_epochs=1,
                  cur_shard=None, shard_count=None, cache=None, worker_class=None,
-                 transform_spec=None, is_batched_reader=False):
+                 transform_spec=None, is_batched_reader=False, pyarrow_filters=None):
         """Initializes a reader object.
 
         :param pyarrow_filesystem: An instance of ``pyarrow.FileSystem`` that will be used. If not specified,
@@ -357,7 +361,8 @@ class Reader(object):
         self.is_batched_reader = is_batched_reader
         # 1. Resolve dataset path (hdfs://, file://) and open the parquet storage (dataset)
         self.dataset = pq.ParquetDataset(dataset_path, filesystem=pyarrow_filesystem,
-                                         validate_schema=False, metadata_nthreads=10)
+                                         validate_schema=False, metadata_nthreads=10,
+                                         filters=pyarrow_filters)
 
         if self.dataset.partitions is None:
             # When read from parquet file list, the `dataset.partitions` will be None.
@@ -412,8 +417,9 @@ class Reader(object):
                                                   self._workers_pool.workers_count + _VENTILATE_EXTRA_ROWGROUPS)
 
         # 5. Start workers pool
-        self._workers_pool.start(worker_class, (pyarrow_filesystem, dataset_path, storage_schema, self.ngram,
-                                                row_groups, cache, transform_spec, self.schema),
+        self._workers_pool.start(worker_class, (pyarrow_filesystem, dataset_path, storage_schema,
+                                                self.ngram, row_groups, cache, transform_spec,
+                                                self.schema, pyarrow_filter),
                                  ventilator=self.ventilator)
         logger.debug('Workers pool started')
 
