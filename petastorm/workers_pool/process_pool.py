@@ -332,7 +332,7 @@ def _monitor_thread_function(main_process_pid):
 
 
 def _worker_bootstrap(worker_class, worker_id, control_socket, worker_receiver_socket, results_sender_socket,
-                      main_process_pid, serializer, worker_kwargs):
+                      main_process_pid, serializer, worker_kwargs={}):
     """This is the root of the spawned worker processes.
 
     :param worker_class: A class with worker implementation.

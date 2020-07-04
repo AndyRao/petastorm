@@ -101,7 +101,7 @@ class ThreadPool(object):
         self._ventilated_items_processed = 0
         self._ventilator = None
 
-    def start(self, worker_class, worker_kwargs=None, ventilator=None):
+    def start(self, worker_class, worker_kwargs={}, ventilator=None):
         """Starts worker threads.
 
         :param worker_class: A class of the worker class. The class will be instantiated in the worker process. The
