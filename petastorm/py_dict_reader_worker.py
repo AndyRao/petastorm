@@ -98,7 +98,8 @@ class PyDictReaderWorkerResultsQueueReader(object):
 
 
 class PyDictReaderWorker(WorkerBase):
-    def __init__(self, worker_id, publish_func, filesystem=None,
+    def __init__(self, worker_id, publish_func,
+                 filesystem=None,
                  dataset_path=None,
                  schema=None,
                  ngram=None,

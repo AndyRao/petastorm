@@ -108,7 +108,6 @@ class ArrowReaderWorker(WorkerBase):
                                                 transform_spec=transform_spec,
                                                 transformed_schema=transformed_schema,
                                                 pyarrow_filters=pyarrow_filters)
-
         if self._ngram:
             raise NotImplementedError('ngrams are not supported by ArrowReaderWorker')
 
