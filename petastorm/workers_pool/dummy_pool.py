@@ -35,9 +35,11 @@ class DummyPool(object):
         self._ventilator = None
         self.workers_count = 1
 
-    def start(self, worker_class, worker_args={}, ventilator=None):
+    def start(self, worker_class, worker_kwargs=None, ventilator=None):
+        if worker_kwargs is None:
+            worker_kwargs = dict()
         # Instantiate a single worker with all the args
-        self._worker = worker_class(0, self._results_queue.append, **worker_args)
+        self._worker = worker_class(0, self._results_queue.append, **worker_kwargs)
 
         if ventilator:
             self._ventilator = ventilator

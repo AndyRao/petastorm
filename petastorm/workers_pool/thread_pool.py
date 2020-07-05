@@ -101,7 +101,7 @@ class ThreadPool(object):
         self._ventilated_items_processed = 0
         self._ventilator = None
 
-    def start(self, worker_class, worker_kwargs={}, ventilator=None):
+    def start(self, worker_class, worker_kwargs=None, ventilator=None):
         """Starts worker threads.
 
         :param worker_class: A class of the worker class. The class will be instantiated in the worker process. The
@@ -110,6 +110,9 @@ class ThreadPool(object):
           :class:`.WorkerBase`
         :return: ``None``
         """
+        if not worker_kwargs:
+            worker_kwargs = dict()
+
         # Verify stop_event and raise exception if it's already set!
         if self._stop_event.is_set():
             raise RuntimeError('ThreadPool({}) cannot be reused! stop_event set? {}'
